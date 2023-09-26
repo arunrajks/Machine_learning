@@ -1,4 +1,4 @@
-#!/Users/arunraj/opt/anaconda3/envs/machine_Learning/bin/python
+#!/Users/bin/python
 import pandas as pd
 import dash
 import dash_html_components as html
@@ -106,8 +106,8 @@ def update_pie_chart(selected_site):
     else:
         # Launch_rate = spacex_df.groupby('Launch Site', as_index=False)[
         #     'class'].count().reset_index()
-        for_chart=spacex_df.groupby(['Launch Site','class'])[
-            'class'].count().loc[(slice(None), 1)].to_frame().reset_index().rename(columns={'class':'class_success'})
+        for_chart = spacex_df.groupby(['Launch Site', 'class'])[
+            'class'].count().loc[(slice(None), 1)].to_frame().reset_index().rename(columns={'class': 'class_success'})
         fig1 = px.pie(for_chart,
                       values='class_success',
                       names='Launch Site',
