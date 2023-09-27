@@ -1,4 +1,4 @@
-# IBM final project
+# IBM Capstone project
 
 ## Introduction
 In this capstone, our goal is to predict the successful landing of the Falcon 9 first stage. SpaceX advertises Falcon 9 rocket launches on its website at a cost of 62 million dollars, a significantly lower price than other providers, mainly due to the ability to reuse the first stage. Determining the first stage's landing success allows us to estimate launch costs, which could be valuable if another company intends to compete with SpaceX for rocket launches.
