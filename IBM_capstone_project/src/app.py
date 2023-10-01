@@ -22,8 +22,10 @@ select_geo = spacex_geo.groupby('Launch Site')[['Lat', 'Long']].mean()
 
 def map_lauch_loc(df):
     my_map = folium.Map(location=[40, -85],
-                        zoom_start=3, )
-                        # tiles='cartodbpositron')
+                        zoom_start=3,
+                        # max_bounds=True,
+                        min_zoom=2)
+    # tiles='cartodbpositron')
     marker_cluster = MarkerCluster()
     my_map.add_child(marker_cluster)
     # Add Mouse Position to get the coordinate (Lat, Long) for a mouse over on the map
@@ -111,7 +113,7 @@ def update_pie_chart(selected_site):
                          )
 
         location_map = map_lauch_loc(select_geo)
-        location_map.save('SpaceX_lauch_site.html')
+        location_map.save('src/SpaceX_lauch_site.html')
         script_dir = os.path.dirname(os.path.realpath(__file__))
         html_file_name = 'SpaceX_lauch_site.html'
         html_file_path = os.path.join(script_dir, html_file_name)
@@ -136,7 +138,7 @@ def update_pie_chart(selected_site):
                       popup=f"{selected_site} Launch Site").add_to(m)
         dff = select_geo.loc[selected_site].to_frame().T
         location_map = map_lauch_loc(dff)
-        location_map.save('SpaceX_lauch_site.html')
+        location_map.save('src/SpaceX_lauch_site.html')
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
         html_file_name = 'SpaceX_lauch_site.html'
@@ -170,8 +172,10 @@ def update_payload_chart(selected_site, value):
                              x='Payload Mass (kg)',
                              y='class',
                              color='Booster Version Category',
-                             title=f'Correlation between Payload and Success for Site = {selected_site}'
+                             title=f'Correlation between Payload and Success for Site = {selected_site}',
+                             
                              )
+    fig_scatter.update_traces(marker=dict(size=20))
 
     return fig_scatter
 
