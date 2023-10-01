@@ -7,6 +7,8 @@ import plotly.express as px
 import folium
 import os
 import dash_bootstrap_components as dbc
+from folium.plugins import MousePosition
+from folium.plugins import MarkerCluster
 
 # Reading data
 spacex_df = pd.read_csv("spacex_launch_dash.csv")
@@ -17,14 +19,35 @@ launch_sites = spacex_df['Launch Site'].unique()
 spacex_geo = pd.read_csv("spacex_launch_geo.csv")
 select_geo = spacex_geo.groupby('Launch Site')[['Lat', 'Long']].mean()
 
-my_map= folium.Map(location=[40,-85],zoom_start=3)
+
 def map_lauch_loc(df):
+    my_map = folium.Map(location=[40, -85],
+                        zoom_start=3, )
+                        # tiles='cartodbpositron')
+    marker_cluster = MarkerCluster()
+    my_map.add_child(marker_cluster)
+    # Add Mouse Position to get the coordinate (Lat, Long) for a mouse over on the map
+    formatter = "function(num) {return L.Util.formatNum(num, 5);};"
+    mouse_position = MousePosition(
+        position='topright',
+        separator=' Long: ',
+        empty_string='NaN',
+        lng_first=False,
+        num_digits=20,
+        prefix='Lat:',
+        lat_formatter=formatter,
+        lng_formatter=formatter,
+    )
+    my_map.add_child(mouse_position)
     for row in df.itertuples():
-        marker=folium.Marker(location=[row.Lat,row.Long],popup=row[0])
-        marker.add_to(my_map)
-    return my_map 
-    
-                #    , avg_long = select_geo[['Lat', 'Long']].mean()
+        marker = folium.Marker(location=[row.Lat, row.Long], popup=row[0])
+        # marker.add_to(my_map)
+        marker.add_to(marker_cluster)
+
+    return my_map
+
+    #    , avg_long = select_geo[['Lat', 'Long']].mean()
+
 
 # Create Dash app
 app = dash.Dash(__name__)
@@ -77,15 +100,17 @@ app.layout = html.Div(children=[
 def update_pie_chart(selected_site):
     if selected_site == 'All sites':
         # Create a pie chart showing success count for all sites
-        chart_data = spacex_df['class'].value_counts().reset_index()
-        chart_data.columns = ['outcome', 'count']
-        fig_pie = px.pie(chart_data,
-                         values='count',
-                         names='outcome',
-                         title='Overall Success Count'
+
+        for_chart = spacex_df.groupby(['Launch Site', 'class'])[
+            'class'].count().loc[(slice(None), 1)].to_frame().reset_index().rename(columns={'class': 'class_success'})
+
+        fig_pie = px.pie(for_chart,
+                         values='class_success',
+                         names='Launch Site',
+                         title='succes count of each site'
                          )
-        
-        location_map=map_lauch_loc(select_geo)
+
+        location_map = map_lauch_loc(select_geo)
         location_map.save('SpaceX_lauch_site.html')
         script_dir = os.path.dirname(os.path.realpath(__file__))
         html_file_name = 'SpaceX_lauch_site.html'
@@ -109,8 +134,8 @@ def update_pie_chart(selected_site):
                                  select_geo.loc[selected_site, 'Long']], zoom_start=9)
         folium.Marker([select_geo.loc[selected_site, 'Lat'], select_geo.loc[selected_site, 'Long']],
                       popup=f"{selected_site} Launch Site").add_to(m)
-        dff=select_geo.loc[selected_site].to_frame().T
-        location_map=map_lauch_loc(dff)
+        dff = select_geo.loc[selected_site].to_frame().T
+        location_map = map_lauch_loc(dff)
         location_map.save('SpaceX_lauch_site.html')
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -120,7 +145,6 @@ def update_pie_chart(selected_site):
             map_html = open(html_file_path, 'r').read()
         else:
             map_html = "<p>HTML file not found</p>"
-
 
     return [map_html, fig_pie]
 
