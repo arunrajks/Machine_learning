@@ -9,6 +9,7 @@ import os
 import dash_bootstrap_components as dbc
 from folium.plugins import MousePosition
 from folium.plugins import MarkerCluster
+import pickle
 
 # Reading data
 spacex_df = pd.read_csv("spacex_launch_dash.csv")
@@ -18,7 +19,8 @@ launch_sites = spacex_df['Launch Site'].unique()
 
 spacex_geo = pd.read_csv("spacex_launch_geo.csv")
 select_geo = spacex_geo.groupby('Launch Site')[['Lat', 'Long']].mean()
-
+# load ml model
+load_model=pickle.load(open('launch_predict_SpX_DT.sav','rb'))
 
 def map_lauch_loc(df):
     my_map = folium.Map(location=[40, -85],
@@ -78,6 +80,8 @@ app.layout = html.Div(children=[
         dcc.Graph(id='success-pie-chart')
     ], style={'display': 'flex'}),
     html.Br(),
+    html.Div([dcc.Graph(id='machnine_learning')]),
+    html.Br(),
     html.P("Payload range (Kg):"),
     dcc.RangeSlider(
         id='payload-slider',
@@ -113,7 +117,7 @@ def update_pie_chart(selected_site):
                          )
 
         location_map = map_lauch_loc(select_geo)
-        location_map.save('src/SpaceX_lauch_site.html')
+        location_map.save('SpaceX_lauch_site.html')
         script_dir = os.path.dirname(os.path.realpath(__file__))
         html_file_name = 'SpaceX_lauch_site.html'
         html_file_path = os.path.join(script_dir, html_file_name)
@@ -138,7 +142,7 @@ def update_pie_chart(selected_site):
                       popup=f"{selected_site} Launch Site").add_to(m)
         dff = select_geo.loc[selected_site].to_frame().T
         location_map = map_lauch_loc(dff)
-        location_map.save('src/SpaceX_lauch_site.html')
+        location_map.save('SpaceX_lauch_site.html')
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
         html_file_name = 'SpaceX_lauch_site.html'
